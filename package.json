@@ -1,11 +1,12 @@
 {
   "name": "prepare-package",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
-    "start": "node ./src/index.js"
+    "start": "node ./src/index.js",
+    "prepare": "node ./src/index.js"
   },
   "preparePackage": {
     "input": "src",

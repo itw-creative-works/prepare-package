@@ -32,7 +32,7 @@ if (isLivePreparation) {
   function _replaceMain() {
     let content = jetpack.read(theirPackageJSON.main)
       // .replace(/{version}/igm, package.version)
-      .replace(/{version}/igm, package.version)
+      .replace(/{version}/igm, theirPackageJSON.version)
   }
   jetpack.write(
     theirPackageJSON.main,
@@ -45,8 +45,9 @@ fetch(`https://purge.jsdelivr.net/npm/${theirPackageJSON.name}@latest`, {
   tries: 3,
 })
 .then(result => {
-  console.log(chalk.green(`[prepare-package]: Purged... name=${theirPackageJSON.name}`), result);
+  // console.log(chalk.green(`[prepare-package]: Purged... name=${theirPackageJSON.name}`), result);
+  console.log(chalk.green(`[prepare-package]: Purged... ${theirPackageJSON.name}`));
 })
 .catch(e => {
-  console.log(chalk.red(`[prepare-package]: Failed to purge... name=${theirPackageJSON.name}`, e));
+  console.log(chalk.red(`[prepare-package]: Failed to purge... ${theirPackageJSON.name}`, e));
 })

@@ -1,0 +1,43 @@
+{
+  "name": "prepare-package",
+  "version": "0.0.1",
+  "description": "Prepare a Node.js package before being published",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
+    "start": "node ./src/index.js"
+  },
+  "preparePackage": {
+    "input": "src",
+    "output": "dist",
+    "replace": {}
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itw-creative-works/prepare-package.git"
+  },
+  "keywords": [
+    "management",
+    "backend",
+    "frontend",
+    "productivity"
+  ],
+  "author": "ITW Creative Works",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/itw-creative-works/prepare-package/issues"
+  },
+  "homepage": "https://itwcreativeworks.com",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-jetpack": "^4.3.1",
+    "wonderful-fetch": "^0.0.5"
+  },
+  "devDependencies": {
+    "fs-jetpack": "^4.3.1",
+    "mocha": "^8.0.1"
+  }
+}

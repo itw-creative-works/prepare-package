@@ -33,6 +33,7 @@ if (isLivePreparation) {
     let content = jetpack.read(theirPackageJSON.main)
       // .replace(/{version}/igm, package.version)
       .replace(/{version}/igm, theirPackageJSON.version)
+    return content;
   }
   jetpack.write(
     theirPackageJSON.main,

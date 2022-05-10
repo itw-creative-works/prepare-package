@@ -5,78 +5,55 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/package-json/v/itw-creative-works/promo-server.svg">
+  <img src="https://img.shields.io/github/package-json/v/itw-creative-works/prepare-package.svg">
   <br>
-  <img src="https://img.shields.io/david/itw-creative-works/promo-server.svg">
-  <img src="https://img.shields.io/david/dev/itw-creative-works/promo-server.svg">
-  <img src="https://img.shields.io/bundlephobia/min/promo-server.svg">
-  <img src="https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/promo-server.svg">
-  <img src="https://img.shields.io/npm/dm/promo-server.svg">
-  <img src="https://img.shields.io/node/v/promo-server.svg">
+  <img src="https://img.shields.io/david/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/david/dev/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/bundlephobia/min/prepare-package.svg">
+  <img src="https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/npm/dm/prepare-package.svg">
+  <img src="https://img.shields.io/node/v/prepare-package.svg">
   <img src="https://img.shields.io/website/https/itwcreativeworks.com.svg">
-  <img src="https://img.shields.io/github/license/itw-creative-works/promo-server.svg">
-  <img src="https://img.shields.io/github/contributors/itw-creative-works/promo-server.svg">
-  <img src="https://img.shields.io/github/last-commit/itw-creative-works/promo-server.svg">
+  <img src="https://img.shields.io/github/license/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/github/contributors/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/github/last-commit/itw-creative-works/prepare-package.svg">
   <br>
   <br>
-  <a href="https://itwcreativeworks.com">Site</a> | <a href="https://www.npmjs.com/package/promo-server">NPM Module</a> | <a href="https://github.com/itw-creative-works/promo-server">GitHub Repo</a>
+  <a href="https://itwcreativeworks.com">Site</a> | <a href="https://www.npmjs.com/package/prepare-package">NPM Module</a> | <a href="https://github.com/itw-creative-works/prepare-package">GitHub Repo</a>
   <br>
   <br>
-  <strong>Promo Server</strong> is an NPM module for backend and frontend developers that exposes promotion utilities for ITW Creative Works.
+  <strong>Prepare Package</strong> is a drop-in replacement NPM module that prepares your package before distribution.
 </p>
 
-## Install Promo Server
+## Install Prepare Package
 ### Install via npm
-Install with npm if you plan to use **Promo Server** in a Node.js project or in the browser.
+Install with npm if you plan to use **Prepare Package** in a Node.js project.
 ```shell
-npm install promo-server
-```
-If you plan to use `promo-server` in a browser environment, you will probably need to use [Webpack](https://www.npmjs.com/package/webpack), [Browserify](https://www.npmjs.com/package/browserify), or a similar service to compile it.
-
-```js
-const promoserver = new (require('promo-server'))();
-```
-
-### Install via CDN
-Install with CDN if you plan to use **Promo Server** only in a browser environment.
-```html
-<script src="https://cdn.jsdelivr.net/npm/promo-server@latest/dist/index.min.js"></script>
-<script type="text/javascript">
-  var promoserver = new PromoServer(); // The script above exposes the global variable 'PromoServer'
-</script>
+npm install prepare-package --save-dev
 ```
 
 ## Features
-* Useful **promo management** for ITW Creative Works
+* Copy files from `src` to `dist`
+* Replace tags in your main file, `index.js`
+  * `{version}` => `package.version`
 
 ## Example Setup
-After installing via npm, simply `require` the library and begin enjoying the promo handler.
-```js
-const promoserver = new (require('promo-server'))({
-  app: 'example', // <any string>
-  platform: 'web', // web | electron | extension
-  log: true, // true | false
-  firebase: firebase // reference to firebase (one will be implied if not provided)
-});
+After installing via npm, simply put this in your `package.json` in the `scripts` key
+```json
+"main": "dist/index.js",
+"scripts": {
+  "prepare": "node -e 'require(`prepare-package`)'"
+},
+"preparePackage": {
+  "input": "src",
+  "output": "dist",
+  "replace": {}
+},
 ```
-## Usage
-### promoserver.handle(fn)
-
-Set up a handler for new promo updates that will call `fn` when there is a promo update
-```js
-promoserver.handle(function (payload) {
-  console.log('Payload', payload);
-});
-```
-
-### promoserver.setUser(user)
-
-Set the current user so things like `user.plan.id` can be considered for the handler
-```js
-promoserver.setUser({});
-```
+* `preparePackage` is not required but you can provide it to customize the process.
+* `preparePackage.input`: The dir to copy **from**.
+* `preparePackage.out`: The dir to copy **to**.
+* `main`: The file to copy and use as your main file. Tags like `{version}` are replaced in this file.
 
 ## Final Words
-If you are still having difficulty, we would love for you to post a question to [the Promo Server issues page](https://github.com/itw-creative-works/promo-server/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)
-
-Ask us to have your project listed! :)
+If you are still having difficulty, we would love for you to post a question to [the Prepare Package issues page](https://github.com/itw-creative-works/prepare-package/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)

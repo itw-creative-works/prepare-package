@@ -38,7 +38,7 @@ npm install prepare-package --save-dev
   * `{version}` => `package.version`
 
 ## Example Setup
-After installing via npm, simply put this in your `package.json` in the `scripts` key
+After installing via npm, simply put this in your `package.json`
 ```json
 "main": "dist/index.js",
 "scripts": {

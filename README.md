@@ -40,6 +40,7 @@ npm install prepare-package --save-dev
 ## Example Setup
 After installing via npm, simply put this in your `package.json`
 ```json
+...
 "main": "dist/index.js",
 "scripts": {
   "prepare": "node -e 'require(`prepare-package`)'"
@@ -49,6 +50,7 @@ After installing via npm, simply put this in your `package.json`
   "output": "dist",
   "replace": {}
 },
+...
 ```
 * `preparePackage` is not required but you can provide it to customize the process.
 * `preparePackage.input`: The dir to copy **from**.

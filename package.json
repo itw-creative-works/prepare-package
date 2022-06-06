@@ -1,6 +1,6 @@
 {
   "name": "prepare-package",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
@@ -38,7 +38,6 @@
     "wonderful-fetch": "^0.0.5"
   },
   "devDependencies": {
-    "fs-jetpack": "^4.3.1",
     "mocha": "^8.0.1"
   }
 }

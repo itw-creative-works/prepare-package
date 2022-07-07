@@ -42,7 +42,7 @@ if (isLivePreparation) {
 }
 
 fetch(`https://purge.jsdelivr.net/npm/${theirPackageJSON.name}@latest`, {
-  responseFormat: 'json',
+  response: 'json',
   tries: 3,
 })
 .then(result => {

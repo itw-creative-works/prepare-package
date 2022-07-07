@@ -22,7 +22,7 @@
   <a href="https://itwcreativeworks.com">Site</a> | <a href="https://www.npmjs.com/package/prepare-package">NPM Module</a> | <a href="https://github.com/itw-creative-works/prepare-package">GitHub Repo</a>
   <br>
   <br>
-  <strong>Prepare Package</strong> is a drop-in replacement NPM module that prepares your package before distribution.
+  <strong>Prepare Package</strong> is a helpful NPM module that prepares your package before distribution.
 </p>
 
 ## Install Prepare Package

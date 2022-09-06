@@ -5,6 +5,11 @@ const chalk = require('chalk');
 const thisPackageJSON = require('../package.json');
 const theirPackageJSON = require(path.join(process.cwd(), 'package.json'));
 const isLivePreparation = theirPackageJSON.name !== 'prepare-package';
+const argv = require('yargs').argv;
+
+const options = {
+  prepare: argv['--purge'] || argv['-p'],
+};
 
 // fix
 theirPackageJSON.main = theirPackageJSON.main || './dist/index.js';
@@ -41,14 +46,19 @@ if (isLivePreparation) {
   )
 }
 
-fetch(`https://purge.jsdelivr.net/npm/${theirPackageJSON.name}@latest`, {
-  response: 'json',
-  tries: 3,
-})
-.then(result => {
-  // console.log(chalk.green(`[prepare-package]: Purged... name=${theirPackageJSON.name}`), result);
-  console.log(chalk.green(`[prepare-package]: Purged... ${theirPackageJSON.name}`));
-})
-.catch(e => {
-  console.log(chalk.red(`[prepare-package]: Failed to purge... ${theirPackageJSON.name}`, e));
-})
+if (options.prepare === 'false') {
+  return;
+} else {
+  return fetch(`https://purge.jsdelivr.net/npm/${theirPackageJSON.name}@latest`, {
+    response: 'json',
+    tries: 3,
+  })
+  .then(result => {
+    // console.log(chalk.green(`[prepare-package]: Purged... name=${theirPackageJSON.name}`), result);
+    console.log(chalk.green(`[prepare-package]: Purged... ${theirPackageJSON.name}`));
+  })
+  .catch(e => {
+    console.log(chalk.red(`[prepare-package]: Failed to purge... ${theirPackageJSON.name}`, e));
+  })   
+}
+

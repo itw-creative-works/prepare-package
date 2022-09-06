@@ -22,10 +22,10 @@ module.exports = function (options) {
   theirPackageJSON.preparePackage.output = path.resolve(theirPackageJSON.preparePackage.output || './dist');
   theirPackageJSON.preparePackage.replace = theirPackageJSON.preparePackage.replace || {};
   
-  console.log(chalk.blue(`[prepare-package]: Preparing purge=${options.purge}...`));
-  console.log(chalk.blue(`[prepare-package]: ${theirPackageJSON.preparePackage.input}`));
-  console.log(chalk.blue(`[prepare-package]: ${theirPackageJSON.preparePackage.output}`));
-  console.log(chalk.blue(`[prepare-package]: ${theirPackageJSON.main}`));
+  console.log(chalk.blue(`[prepare-package]: Options... purge=${options.purge}`));
+  console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
+  console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
+  console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
   
   jetpack.remove(
     theirPackageJSON.preparePackage.output,

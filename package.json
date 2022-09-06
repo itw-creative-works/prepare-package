@@ -1,12 +1,12 @@
 {
   "name": "prepare-package",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
-    "start": "node ./src/index.js",
-    "prepare": "node ./src/index.js"
+    "start": "node -e 'require(`./src/index.js`)()'",
+    "prepare": "node -e 'require(`./src/index.js`)()'"
   },
   "preparePackage": {
     "input": "src",
@@ -35,8 +35,7 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "fs-jetpack": "^4.3.1",
-    "wonderful-fetch": "^0.0.14",
-    "yargs": "^17.5.1"
+    "wonderful-fetch": "^0.0.14"
   },
   "devDependencies": {
     "mocha": "^8.4.0"

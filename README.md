@@ -7,8 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/package-json/v/itw-creative-works/prepare-package.svg">
   <br>
-  <img src="https://img.shields.io/david/itw-creative-works/prepare-package.svg">
-  <img src="https://img.shields.io/david/dev/itw-creative-works/prepare-package.svg">
+  <img src="https://img.shields.io/librariesio/release/npm/prepare-package.svg">
   <img src="https://img.shields.io/bundlephobia/min/prepare-package.svg">
   <img src="https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/prepare-package.svg">
   <img src="https://img.shields.io/npm/dm/prepare-package.svg">

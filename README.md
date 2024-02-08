@@ -42,7 +42,8 @@ After installing via npm, simply put this in your `package.json`
 ...
 "main": "dist/index.js",
 "scripts": {
-  "prepare": "node -e 'require(`prepare-package`)()'"
+  "prepare": "node -e 'require(`prepare-package`)()'",
+  "prepare:watch": "nodemon -w src -e '*' --exec 'npm run prepare'"
 },
 "preparePackage": {
   "input": "src",
@@ -55,6 +56,16 @@ After installing via npm, simply put this in your `package.json`
 * `preparePackage.input`: The dir to copy **from**.
 * `preparePackage.out`: The dir to copy **to**.
 * `main`: The file to copy and use as your main file. Tags like `{version}` are replaced in this file.
+
+## Usage
+### Run Prepare Package
+```shell
+# Run once
+npm run prepare
+
+# Run and watch for changes
+npm run prepare:watch
+```
 
 ## Final Words
 If you are still having difficulty, we would love for you to post a question to [the Prepare Package issues page](https://github.com/itw-creative-works/prepare-package/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)

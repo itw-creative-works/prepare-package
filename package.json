@@ -1,12 +1,13 @@
 {
   "name": "prepare-package",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
     "start": "node -e 'require(`./src/index.js`)()'",
-    "prepare": "node -e 'require(`./src/index.js`)()'"
+    "prepare": "node -e 'require(`./src/index.js`)()'",
+    "prepare:watch": "nodemon -w ./src -e '*' --exec 'npm run prepare'"
   },
   "preparePackage": {
     "input": "src",

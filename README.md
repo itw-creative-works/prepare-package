@@ -43,7 +43,7 @@ After installing via npm, simply put this in your `package.json`
 "main": "dist/index.js",
 "scripts": {
   "prepare": "node -e 'require(`prepare-package`)()'",
-  "prepare:watch": "nodemon -w src -e '*' --exec 'npm run prepare'"
+  "prepare:watch": "nodemon -w ./src -e '*' --exec 'npm run prepare'"
 },
 "preparePackage": {
   "input": "src",

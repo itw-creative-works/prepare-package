@@ -35,7 +35,7 @@ module.exports = async function (options) {
     || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
 
   // Log the options
-  console.log(chalk.blue(`[prepare-package]: Options... purge=${options.purge}`));
+  console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
   console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
   console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
   console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
@@ -74,10 +74,10 @@ module.exports = async function (options) {
     // Send analytics
     await sendAnalytics(thisPackageJSON, theirPackageJSON)
     .then((r) => {
-      console.log(chalk.green(`[prepare-package]: Sent analytics code=${r.status}...`));
+      console.log(chalk.green(`[prepare-package]: Sent analytics code=${r.status}`));
     })
     .catch(e => {
-      console.log(chalk.red(`[prepare-package]: Failed to send analytics...`, e));
+      console.log(chalk.red(`[prepare-package]: Failed to send analytics`, e));
     });
   }
 
@@ -92,10 +92,10 @@ module.exports = async function (options) {
     tries: 3,
   })
   .then(result => {
-    console.log(chalk.green(`[prepare-package]: Purged... ${theirPackageJSON.name}`));
+    console.log(chalk.green(`[prepare-package]: Purged ${theirPackageJSON.name}`));
   })
   .catch(e => {
-    console.log(chalk.red(`[prepare-package]: Failed to purge... ${theirPackageJSON.name}`, e));
+    console.log(chalk.red(`[prepare-package]: Failed to purge ${theirPackageJSON.name}`, e));
   })
 }
 
@@ -157,13 +157,27 @@ function sendAnalytics(thisPackageJSON, theirPackageJSON) {
     }
 
     // Get the user's location
+    const savePath = path.resolve(os.tmpdir(), 'prepare-package-geolocation-cache.json');
     const geolocation = await fetch('https://ipapi.co/json/', {
       response: 'json',
       tries: 2,
       timeout: 30000,
     })
-    .catch(e => {
-      console.log(chalk.red(`[prepare-package]: Failed to get geolocation...`, e));
+    .then((r) => {
+      // Save to tmpdir
+      jetpack.write(savePath, JSON.stringify(r, null, 2));
+
+      return r;
+    })
+    .catch((e) => {
+      console.log(chalk.red(`[prepare-package]: Failed to get geolocation`, e));
+
+      // Try to get from cache
+      if (jetpack.exists(savePath)) {
+        console.log(chalk.blue(`[prepare-package]: Used cached geolocation`));
+
+        return JSON.parse(jetpack.read(savePath));
+      }
     });
 
     // Add the geolocation to the body
@@ -176,8 +190,8 @@ function sendAnalytics(thisPackageJSON, theirPackageJSON) {
     }
 
     // Log the options
-    console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid), body, body.events[0].params);
-    // console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid));
+    // console.log(chalk.blue(`[prepare-package]: Sending analytics mac=${mac}, uuid=${uuid}...`), body, body.events[0].params);
+    console.log(chalk.blue(`[prepare-package]: Sending analytics mac=${mac}, uuid=${uuid}...`));
 
     // Send event
     fetch(url, {

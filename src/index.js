@@ -73,8 +73,8 @@ module.exports = async function (options) {
   if (options.isPostInstall) {
     // Send analytics
     await sendAnalytics(thisPackageJSON, theirPackageJSON)
-    .then(() => {
-      console.log(chalk.green(`[prepare-package]: Sent analytics...`));
+    .then((r) => {
+      console.log(chalk.green(`[prepare-package]: Sent analytics code=${r.status}...`));
     })
     .catch(e => {
       console.log(chalk.red(`[prepare-package]: Failed to send analytics...`, e));
@@ -113,19 +113,28 @@ function sendAnalytics(thisPackageJSON, theirPackageJSON) {
     const mac = getDeviceUniqueId();
     const uuid = uuidv5(mac, '4caf995a-3d43-451b-b34d-e535d2663bc1');
     const simpleOS = getSimpleOS(os.platform());
+    const name = (theirPackageJSON.name || 'unknown')
+      // Replace anything not a letter, number, or underscore with an underscore
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      // Remove leading and trailing underscores
+      .replace(/^_+|_+$/g, '')
+      // Remove multiple underscores
+      .replace(/_+/g, '_');
+
+    // Build body
     const body = {
       client_id: uuid,
       user_id: uuid,
       // timestamp_micros: new Date().getTime() * 1000,
       user_properties: {
-        operating_system: simpleOS,
+        // operating_system: simpleOS, // CAUSES EVENT TO NOT BE SENT
       },
       user_data: {
       },
       // consent: {},
       // non_personalized_ads: false,
       events: [{
-        name: theirPackageJSON.name,
+        name: name,
         params: {
           packageName: theirPackageJSON.name,
           packageVersion: theirPackageJSON.version,
@@ -167,13 +176,13 @@ function sendAnalytics(thisPackageJSON, theirPackageJSON) {
     }
 
     // Log the options
-    // console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid), body, body.events[0].params);
-    console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid));
+    console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid), body, body.events[0].params);
+    // console.log(chalk.blue(`[prepare-package]: Sending analytics...`, mac, uuid));
 
     // Send event
     fetch(url, {
       method: 'post',
-      response: 'text',
+      response: 'raw',
       tries: 2,
       timeout: 30000,
       body: body,

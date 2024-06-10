@@ -40,21 +40,23 @@ module.exports = async function (options) {
   console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
   console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
 
-  // Remove the output folder
-  jetpack.remove(
-    path.resolve(options.cwd, theirPackageJSON.preparePackage.output),
-  )
+  // Set the paths relative to the cwd
+  const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
+  const outputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.output);
+  const inputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.input);
 
-  // Copy the input folder to the output folder
-  jetpack.copy(
-    path.resolve(options.cwd, theirPackageJSON.preparePackage.input),
-    path.resolve(options.cwd, theirPackageJSON.preparePackage.output),
-  )
+  // Remove the output folder if it exists
+  if (jetpack.exists(outputPath)) {
+    jetpack.remove(outputPath);
+  }
+
+  // Copy the input folder to the output folder if it exists
+  if (jetpack.exists(inputPath)) {
+    jetpack.copy(inputPath, outputPath);
+  }
 
   // Only do this part on the actual package that is using THIS package because we dont't want to replace THIS {version}
   if (isLivePreparation) {
-    const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
-
     // Replace the main file
     jetpack.write(
       mainPath,

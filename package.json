@@ -1,6 +1,6 @@
 {
   "name": "prepare-package",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "node -e 'require(`./src/index.js`)()'",
     "prepare": "node -e 'require(`./src/index.js`)()'",
     "prepare:watch": "nodemon -w ./src -e '*' --exec 'npm run prepare'",
-    "postinstall": "node -e 'require(`./dist/index.js`)({cwd: process.env.INIT_CWD})'"
+    "postinstall": "node -e 'require(`./dist/index.js`)({cwd: process.env.INIT_CWD, isPostInstall: true})'"
   },
   "preparePackage": {
     "input": "src",
@@ -37,7 +37,8 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "fs-jetpack": "^4.3.1",
-    "wonderful-fetch": "^1.0.0"
+    "uuid": "^9.0.1",
+    "wonderful-fetch": "^1.1.9"
   },
   "devDependencies": {
     "mocha": "^8.4.0"

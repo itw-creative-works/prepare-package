@@ -12,6 +12,7 @@ module.exports = async function (options) {
   options.cwd = options.cwd || process.cwd();
   options.isPostInstall = typeof options.isPostInstall === 'undefined' ? false : options.isPostInstall;
 
+  // Get the package.json files
   const thisPackageJSON = require('../package.json');
   const theirPackageJSON = require(path.join(options.cwd, 'package.json'));
   const isLivePreparation = theirPackageJSON.name !== 'prepare-package';

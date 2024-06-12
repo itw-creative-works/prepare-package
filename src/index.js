@@ -12,9 +12,13 @@ module.exports = async function (options) {
   options.cwd = options.cwd || process.cwd();
   options.isPostInstall = typeof options.isPostInstall === 'undefined' ? false : options.isPostInstall;
 
+  // Set the paths
+  const theirPackageJSONPath = path.resolve(options.cwd, 'package.json');
+  const theirPackageJSONExists = jetpack.exists(theirPackageJSONPath);
+
   // Get the package.json files
   const thisPackageJSON = require('../package.json');
-  const theirPackageJSON = require(path.join(options.cwd, 'package.json'));
+  const theirPackageJSON = theirPackageJSONExists ? require(theirPackageJSONPath) : {};
   const isLivePreparation = theirPackageJSON.name !== 'prepare-package';
 
   // const options = {
@@ -59,17 +63,21 @@ module.exports = async function (options) {
   // Only do this part on the actual package that is using THIS package because we dont't want to replace THIS {version}
   if (isLivePreparation) {
     // Replace the main file
-    jetpack.write(
-      mainPath,
-      jetpack.read(mainPath)
-        .replace(/{version}/igm, theirPackageJSON.version),
-    );
+    if (jetpack.exists(mainPath)) {
+      jetpack.write(
+        mainPath,
+        jetpack.read(mainPath)
+          .replace(/{version}/igm, theirPackageJSON.version),
+      );
+    }
 
     // Replace the package.json
-    jetpack.write(
-      path.resolve(options.cwd, 'package.json'),
-      JSON.stringify(theirPackageJSON, null, 2)
-    );
+    if (theirPackageJSONExists) {
+      jetpack.write(
+        theirPackageJSONPath,
+        JSON.stringify(theirPackageJSON, null, 2)
+      );
+    }
   }
 
   // Handle post install

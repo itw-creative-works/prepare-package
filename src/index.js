@@ -38,7 +38,7 @@ module.exports = async function (options) {
   //   || 'node -e \'require(`prepare-package`)()\'';
   // theirPackageJSON.scripts['prepare:watch'] = theirPackageJSON.scripts['prepare:watch']
   //   || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
-  theirPackageJSON.scripts.prepare = `node -e \\"require('prepare-package')()\\"`;
+  theirPackageJSON.scripts.prepare = `node -e \"require('prepare-package')()\"`;
   theirPackageJSON.scripts['prepare:watch'] = `nodemon -w ./src -e '*' --exec 'npm run prepare'`
 
   // Log the options

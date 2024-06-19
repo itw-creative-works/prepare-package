@@ -1,6 +1,6 @@
 {
   "name": "prepare-package",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "scripts": {
@@ -10,13 +10,8 @@
     "prepare:watch": "nodemon -w ./src -e '*' --exec 'npm run prepare'",
     "postinstall": "node -e \"require('./dist/index.js')({cwd: process.env.INIT_CWD, isPostInstall: true})\""
   },
-  "preparePackage": {
-    "input": "src",
-    "output": "dist",
-    "replace": {}
-  },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=12"
   },
   "repository": {
     "type": "git",
@@ -34,6 +29,11 @@
     "url": "https://github.com/itw-creative-works/prepare-package/issues"
   },
   "homepage": "https://itwcreativeworks.com",
+  "preparePackage": {
+    "input": "src",
+    "output": "dist",
+    "replace": {}
+  },
   "dependencies": {
     "chalk": "^4.1.2",
     "fs-jetpack": "^4.3.1",

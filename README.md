@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://cdn.itwcreativeworks.com/assets/itw-creative-works/images/logo/itw-creative-works-brandmark-black-x.svg">
+  <a href="https://itwcreativeworks.com">
     <img src="https://cdn.itwcreativeworks.com/assets/itw-creative-works/images/logo/itw-creative-works-brandmark-black-x.svg" width="100px">
   </a>
 </p>
@@ -24,19 +24,19 @@
   <strong>Prepare Package</strong> is a helpful NPM module that prepares your package before distribution.
 </p>
 
-## Install Prepare Package
-### Install via npm
+## 📦 Install Prepare Package
+### Option 1: Install via npm
 Install with npm if you plan to use **Prepare Package** in a Node.js project.
 ```shell
 npm install prepare-package --save-dev
 ```
 
-## Features
+## 🦄 Features
 * Copy files from `src` to `dist`
 * Replace tags in your main file, `index.js`
   * `{version}` => `package.version`
 
-## Example Setup
+## 📘 Example Setup
 After installing via npm, simply put this in your `package.json`
 ```json
 ...
@@ -57,7 +57,7 @@ After installing via npm, simply put this in your `package.json`
 * `preparePackage.out`: The dir to copy **to**.
 * `main`: The file to copy and use as your main file. Tags like `{version}` are replaced in this file.
 
-## Usage
+## ⚡️ Usage
 ### Run Prepare Package
 ```shell
 # Run once
@@ -67,5 +67,5 @@ npm run prepare
 npm run prepare:watch
 ```
 
-## Final Words
+## 🗨️ Final Words
 If you are still having difficulty, we would love for you to post a question to [the Prepare Package issues page](https://github.com/itw-creative-works/prepare-package/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)

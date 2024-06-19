@@ -34,10 +34,12 @@ module.exports = async function (options) {
 
   // Add script
   theirPackageJSON.scripts = theirPackageJSON.scripts || {};
-  theirPackageJSON.scripts.prepare = theirPackageJSON.scripts.prepare
-    || 'node -e \'require(`prepare-package`)()\'';
-  theirPackageJSON.scripts['prepare:watch'] = theirPackageJSON.scripts['prepare:watch']
-    || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
+  // theirPackageJSON.scripts.prepare = theirPackageJSON.scripts.prepare
+  //   || 'node -e \'require(`prepare-package`)()\'';
+  // theirPackageJSON.scripts['prepare:watch'] = theirPackageJSON.scripts['prepare:watch']
+  //   || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
+  theirPackageJSON.scripts.prepare = `node -e \\"require('prepare-package')()\\"`;
+  theirPackageJSON.scripts['prepare:watch'] = `nodemon -w ./src -e '*' --exec 'npm run prepare'`
 
   // Log the options
   console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
@@ -50,20 +52,25 @@ module.exports = async function (options) {
   const outputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.output);
   const inputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.input);
 
-  // Remove the output folder if it exists
-  if (jetpack.exists(outputPath)) {
+  // Check if paths exist
+  const mainPathExists = jetpack.exists(mainPath);
+  const outputPathExists = jetpack.exists(outputPath);
+  const inputPathExists = jetpack.exists(inputPath);
+
+  // Remove the output folder if it exists (input must exist too)
+  if (outputPathExists && inputPathExists) {
     jetpack.remove(outputPath);
   }
 
   // Copy the input folder to the output folder if it exists
-  if (jetpack.exists(inputPath)) {
+  if (inputPathExists) {
     jetpack.copy(inputPath, outputPath);
   }
 
   // Only do this part on the actual package that is using THIS package because we dont't want to replace THIS {version}
   if (isLivePreparation) {
     // Replace the main file
-    if (jetpack.exists(mainPath)) {
+    if (mainPathExists) {
       jetpack.write(
         mainPath,
         jetpack.read(mainPath)

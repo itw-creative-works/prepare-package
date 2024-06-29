@@ -82,7 +82,7 @@ module.exports = async function (options) {
     if (theirPackageJSONExists) {
       jetpack.write(
         theirPackageJSONPath,
-        JSON.stringify(theirPackageJSON, null, 2)
+        `${JSON.stringify(theirPackageJSON, null, 2)}\n`
       );
     }
   }

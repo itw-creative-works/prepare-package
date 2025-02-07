@@ -67,3 +67,4 @@ node_modules/
 
 # Custom
 package-lock.json
+/dist

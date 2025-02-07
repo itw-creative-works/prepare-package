@@ -42,10 +42,17 @@ module.exports = async function (options) {
   theirPackageJSON.scripts['prepare:watch'] = `nodemon -w ./src -e '*' --exec 'npm run prepare'`
 
   // Log the options
-  console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
-  console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
-  console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
-  console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
+  // console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
+  // console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
+  // console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
+  // console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
+  logger.log(`Starting...`);
+  logger.log({
+    purge: options.purge,
+    input: theirPackageJSON.preparePackage.input,
+    output: theirPackageJSON.preparePackage.output,
+    main: theirPackageJSON.main,
+  });
 
   // Set the paths relative to the cwd
   const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
@@ -103,11 +110,56 @@ module.exports = async function (options) {
     response: 'json',
     tries: 3,
   })
-  .then(result => {
-    console.log(chalk.green(`[prepare-package]: Purged ${theirPackageJSON.name}`));
+  .then((r) => {
+    // console.log(chalk.green(`[prepare-package]: Purged ${theirPackageJSON.name}`));
+    logger.log(chalk.green(`Purged ${theirPackageJSON.name}!`));
   })
-  .catch(e => {
-    console.log(chalk.red(`[prepare-package]: Failed to purge ${theirPackageJSON.name}`, e));
+  .catch((e) => {
+    // console.log(chalk.red(`[prepare-package]: Failed to purge ${theirPackageJSON.name}`, e));
+    logger.error(`Failed to purge ${theirPackageJSON.name}!`, e.stack);
   })
 }
+
+// Setup logger
+const logger = {};
+
+// Loop through log, error, warn, and info and make methods that log to console with the name and time [xx:xx:xx] name: message
+['log', 'error', 'warn', 'info'].forEach((method) => {
+  logger[method] = function () {
+    // Get time
+    const time = new Date().toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+
+    // Determine color based on method
+    let color;
+    switch (method) {
+      case 'warn':
+        color = chalk.yellow;
+        break;
+      case 'error':
+        color = chalk.red;
+        break;
+      default:
+        color = (text) => text; // No color
+    }
+
+    // Convert arguments to array and prepend time and name
+    const args = [`[${chalk.magenta(time)}] '${chalk.cyan('prepare-package')}':`, ...Array.from(arguments).map(arg => {
+      return typeof arg === 'string'
+        ? color(arg)
+        : (
+            arg instanceof Error
+              ? color(arg.stack)
+              : arg
+          );
+    })];
+
+    // Log
+    console[method].apply(console, args);
+  };
+});
 

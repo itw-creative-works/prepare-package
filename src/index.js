@@ -2,6 +2,7 @@ const jetpack = require('fs-jetpack');
 const fetch = require('wonderful-fetch');
 const path = require('path');
 const chalk = require('chalk');
+const logger = require('./logger');
 
 // const argv = require('yargs').argv;
 
@@ -39,7 +40,7 @@ module.exports = async function (options) {
   // theirPackageJSON.scripts['prepare:watch'] = theirPackageJSON.scripts['prepare:watch']
   //   || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
   theirPackageJSON.scripts.prepare = `node -e \"require('prepare-package')()\"`;
-  theirPackageJSON.scripts['prepare:watch'] = `nodemon -w ./src -e '*' --exec 'npm run prepare'`
+  theirPackageJSON.scripts['prepare:watch'] = `node -e \"require('prepare-package/watch')()\"`
 
   // Log the options
   // console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
@@ -119,47 +120,4 @@ module.exports = async function (options) {
     logger.error(`Failed to purge ${theirPackageJSON.name}!`, e.stack);
   })
 }
-
-// Setup logger
-const logger = {};
-
-// Loop through log, error, warn, and info and make methods that log to console with the name and time [xx:xx:xx] name: message
-['log', 'error', 'warn', 'info'].forEach((method) => {
-  logger[method] = function () {
-    // Get time
-    const time = new Date().toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-
-    // Determine color based on method
-    let color;
-    switch (method) {
-      case 'warn':
-        color = chalk.yellow;
-        break;
-      case 'error':
-        color = chalk.red;
-        break;
-      default:
-        color = (text) => text; // No color
-    }
-
-    // Convert arguments to array and prepend time and name
-    const args = [`[${chalk.magenta(time)}] '${chalk.cyan('prepare-package')}':`, ...Array.from(arguments).map(arg => {
-      return typeof arg === 'string'
-        ? color(arg)
-        : (
-            arg instanceof Error
-              ? color(arg.stack)
-              : arg
-          );
-    })];
-
-    // Log
-    console[method].apply(console, args);
-  };
-});
 

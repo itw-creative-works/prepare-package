@@ -16,8 +16,6 @@ module.exports = async function watch() {
   packageJSON.preparePackage = packageJSON.preparePackage || {};
   const inputPath = path.resolve(cwd, packageJSON.preparePackage.input || './src');
   const outputPath = path.resolve(cwd, packageJSON.preparePackage.output || './dist');
-  const mainPath = path.resolve(cwd, packageJSON.main || './dist/index.js');
-  const isLivePreparation = packageJSON.name !== 'prepare-package';
   
   // Run initial prepare (full copy)
   logger.log('Running initial prepare...');
@@ -37,7 +35,7 @@ module.exports = async function watch() {
   });
   
   // Helper function to process a single file
-  const processSingleFile = (filePath, eventType) => {
+  const processSingleFile = async (filePath, eventType) => {
     const relativePath = path.relative(inputPath, filePath);
     const destPath = path.join(outputPath, relativePath);
     
@@ -53,18 +51,11 @@ module.exports = async function watch() {
         jetpack.dir(destPath);
         logger.log(`Created dir: ${relativePath}`);
       } else if (eventType === 'add' || eventType === 'change') {
-        // Copy the file to output
-        jetpack.copy(filePath, destPath, { overwrite: true });
-        
-        // Apply version replacement if it's the main file
-        if (isLivePreparation && destPath === mainPath) {
-          jetpack.write(
-            destPath,
-            jetpack.read(destPath).replace(/{version}/igm, packageJSON.version)
-          );
-        }
-        
-        logger.log(`Updated: ${relativePath}`);
+        // Use the main prepare function with singleFile option
+        await prepare({ 
+          purge: false,
+          singleFile: filePath 
+        });
       }
     } catch (error) {
       logger.error(`Error processing ${relativePath}: ${error.message}`);

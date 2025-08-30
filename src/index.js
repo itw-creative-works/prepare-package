@@ -12,6 +12,7 @@ module.exports = async function (options) {
   options.purge = typeof options.purge === 'undefined' ? true : options.purge;
   options.cwd = options.cwd || process.cwd();
   options.isPostInstall = typeof options.isPostInstall === 'undefined' ? false : options.isPostInstall;
+  options.singleFile = options.singleFile || null; // For watch mode - single file to process
 
   // Set the paths
   const theirPackageJSONPath = path.resolve(options.cwd, 'package.json');
@@ -47,13 +48,15 @@ module.exports = async function (options) {
   // console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
   // console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
   // console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
-  logger.log(`Starting...`);
-  logger.log({
-    purge: options.purge,
-    input: theirPackageJSON.preparePackage.input,
-    output: theirPackageJSON.preparePackage.output,
-    main: theirPackageJSON.main,
-  });
+  if (!options.singleFile) {
+    logger.log(`Starting...`);
+    logger.log({
+      purge: options.purge,
+      input: theirPackageJSON.preparePackage.input,
+      output: theirPackageJSON.preparePackage.output,
+      main: theirPackageJSON.main,
+    });
+  }
 
   // Set the paths relative to the cwd
   const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
@@ -65,33 +68,58 @@ module.exports = async function (options) {
   const outputPathExists = jetpack.exists(outputPath);
   const inputPathExists = jetpack.exists(inputPath);
 
-  // Remove the output folder if it exists (input must exist too)
-  if (outputPathExists && inputPathExists) {
-    jetpack.remove(outputPath);
-  }
+  // Handle single file mode (for watch)
+  if (options.singleFile) {
+    const relativePath = path.relative(inputPath, options.singleFile);
+    const destPath = path.join(outputPath, relativePath);
 
-  // Copy the input folder to the output folder if it exists
-  if (inputPathExists) {
-    jetpack.copy(inputPath, outputPath);
+    // Copy single file
+    if (jetpack.exists(options.singleFile)) {
+      jetpack.copy(options.singleFile, destPath, { overwrite: true });
+      logger.log(`Updated: ${relativePath}`);
+    }
+  } else {
+    // Normal mode - full copy
+    // Remove the output folder if it exists (input must exist too)
+    if (outputPathExists && inputPathExists) {
+      jetpack.remove(outputPath);
+    }
+
+    // Copy the input folder to the output folder if it exists
+    if (inputPathExists) {
+      jetpack.copy(inputPath, outputPath);
+    }
   }
 
   // Only do this part on the actual package that is using THIS package because we dont't want to replace THIS {version}
   if (isLivePreparation) {
-    // Replace the main file
-    if (mainPathExists) {
-      jetpack.write(
-        mainPath,
-        jetpack.read(mainPath)
-          .replace(/{version}/igm, theirPackageJSON.version),
-      );
-    }
+    // In single file mode, only process if it's the main file
+    if (options.singleFile) {
+      const destPath = path.join(outputPath, path.relative(inputPath, options.singleFile));
+      if (destPath === mainPath && jetpack.exists(destPath)) {
+        jetpack.write(
+          destPath,
+          jetpack.read(destPath).replace(/{version}/igm, theirPackageJSON.version)
+        );
+      }
+    } else {
+      // Normal mode - process main file and package.json
+      // Replace the main file
+      if (mainPathExists) {
+        jetpack.write(
+          mainPath,
+          jetpack.read(mainPath)
+            .replace(/{version}/igm, theirPackageJSON.version),
+        );
+      }
 
-    // Replace the package.json
-    if (theirPackageJSONExists) {
-      jetpack.write(
-        theirPackageJSONPath,
-        `${JSON.stringify(theirPackageJSON, null, 2)}\n`
-      );
+      // Replace the package.json
+      if (theirPackageJSONExists) {
+        jetpack.write(
+          theirPackageJSONPath,
+          `${JSON.stringify(theirPackageJSON, null, 2)}\n`
+        );
+      }
     }
   }
 

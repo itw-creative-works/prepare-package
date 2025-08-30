@@ -1,6 +1,6 @@
 {
   "name": "prepare-package",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "Prepare a Node.js package before being published",
   "main": "dist/index.js",
   "exports": {

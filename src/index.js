@@ -6,6 +6,40 @@ const logger = require('./logger');
 
 // const argv = require('yargs').argv;
 
+// Helper function to check for local dependencies
+function checkForLocalDependencies(packageJSON) {
+  const localDeps = [];
+  const depTypes = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies'
+  ];
+
+  depTypes.forEach(type => {
+    if (!packageJSON[type]) {
+      return;
+    }
+
+    Object.entries(packageJSON[type]).forEach(([name, version]) => {
+      // Check for file: protocol or relative/absolute paths
+      if (version.startsWith('file:')
+        || version.startsWith('../')
+        || version.startsWith('./')
+        || version.startsWith('/')
+        || version.startsWith('~')) {
+        localDeps.push({
+          type,
+          name,
+          value: version
+        });
+      }
+    });
+  });
+
+  return localDeps;
+}
+
 module.exports = async function (options) {
   // Set the options
   options = options || {};
@@ -13,6 +47,12 @@ module.exports = async function (options) {
   options.cwd = options.cwd || process.cwd();
   options.isPostInstall = typeof options.isPostInstall === 'undefined' ? false : options.isPostInstall;
   options.singleFile = options.singleFile || null; // For watch mode - single file to process
+
+  // Detect if running via npm publish
+  const isPublishing = process.env.npm_lifecycle_event === 'prepublishOnly'
+    || process.env.npm_lifecycle_event === 'prepublish'
+    || process.env.npm_lifecycle_event === 'publish';
+  const isManualPrepare = process.env.npm_lifecycle_event === 'prepare';
 
   // Set the paths
   const theirPackageJSONPath = path.resolve(options.cwd, 'package.json');
@@ -22,6 +62,19 @@ module.exports = async function (options) {
   const thisPackageJSON = require('../package.json');
   const theirPackageJSON = theirPackageJSONExists ? require(theirPackageJSONPath) : {};
   const isLivePreparation = theirPackageJSON.name !== 'prepare-package';
+
+  // Check for local dependencies when publishing
+  if (isPublishing) {
+    const hasLocalDeps = checkForLocalDependencies(theirPackageJSON);
+    if (hasLocalDeps.length > 0) {
+      logger.error('Cannot publish with local dependencies!');
+      logger.error('The following dependencies use local file references:');
+      hasLocalDeps.forEach(dep => {
+        logger.error(`  - ${dep.type}: ${dep.name} -> ${dep.value}`);
+      });
+      throw new Error('Publishing blocked: Remove local file dependencies before publishing to npm');
+    }
+  }
 
   // const options = {
   //   purge: argv['--purge'] || argv['-p'],
@@ -49,12 +102,14 @@ module.exports = async function (options) {
   // console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
   // console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
   if (!options.singleFile) {
-    logger.log(`Starting...`);
+    logger.log(`Starting...${isPublishing ? ' (via npm publish)' : ''}`);
     logger.log({
       purge: options.purge,
       input: theirPackageJSON.preparePackage.input,
       output: theirPackageJSON.preparePackage.output,
       main: theirPackageJSON.main,
+      isPublishing: isPublishing,
+      lifecycle: process.env.npm_lifecycle_event,
     });
   }
 

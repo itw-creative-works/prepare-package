@@ -49,10 +49,11 @@ module.exports = async function (options) {
   options.singleFile = options.singleFile || null; // For watch mode - single file to process
 
   // Detect if running via npm publish
-  const isPublishing = process.env.npm_lifecycle_event === 'prepublishOnly'
-    || process.env.npm_lifecycle_event === 'prepublish'
-    || process.env.npm_lifecycle_event === 'publish';
-  const isManualPrepare = process.env.npm_lifecycle_event === 'prepare';
+  // When npm publish runs, it sets npm_command to 'publish' even though lifecycle_event is 'prepare'
+  const isPublishing = process.env.npm_command === 'publish'
+    || process.env.npm_lifecycle_event === 'prepublishOnly'
+    || process.env.npm_lifecycle_event === 'prepublish';
+  const isManualPrepare = process.env.npm_lifecycle_event === 'prepare' && !isPublishing;
 
   // Set the paths
   const theirPackageJSONPath = path.resolve(options.cwd, 'package.json');
@@ -62,6 +63,7 @@ module.exports = async function (options) {
   const thisPackageJSON = require('../package.json');
   const theirPackageJSON = theirPackageJSONExists ? require(theirPackageJSONPath) : {};
   const isLivePreparation = theirPackageJSON.name !== 'prepare-package';
+
 
   // Check for local dependencies when publishing
   if (isPublishing) {
@@ -108,8 +110,10 @@ module.exports = async function (options) {
       input: theirPackageJSON.preparePackage.input,
       output: theirPackageJSON.preparePackage.output,
       main: theirPackageJSON.main,
+
+      // lifecycle: process.env.npm_lifecycle_event,
+      // command: process.env.npm_command,
       isPublishing: isPublishing,
-      lifecycle: process.env.npm_lifecycle_event,
     });
   }
 

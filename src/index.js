@@ -200,7 +200,7 @@ module.exports = async function (options) {
   })
   .then((r) => {
     // console.log(chalk.green(`[prepare-package]: Purged ${theirPackageJSON.name}`));
-    logger.log(chalk.green(`Purged ${theirPackageJSON.name}!`));
+    logger.log(chalk.green(`Purged ${theirPackageJSON.name}: status=${r.status}, id=${r.id}, timestamp=${r.timestamp}`));
   })
   .catch((e) => {
     // console.log(chalk.red(`[prepare-package]: Failed to purge ${theirPackageJSON.name}`, e));

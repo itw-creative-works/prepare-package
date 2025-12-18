@@ -76,6 +76,28 @@ module.exports = async function (options) {
       });
       throw new Error('Publishing blocked: Remove local file dependencies before publishing to npm');
     }
+
+    // Clean up files that should never be published (search recursively, exclude node_modules)
+    const filesToRemove = [
+      'firebase-debug.log',
+      '.DS_Store',
+      'Thumbs.db',
+      '.env',
+      '.env.local',
+      '.env.development',
+      '.env.production',
+    ];
+
+    filesToRemove.forEach(fileName => {
+      const foundFiles = jetpack.find(options.cwd, {
+        matching: [`**/${fileName}`, `!node_modules/**`],
+      });
+
+      foundFiles.forEach(filePath => {
+        jetpack.remove(filePath);
+        logger.log(chalk.yellow(`Removed ${path.relative(options.cwd, filePath)}`));
+      });
+    });
   }
 
   // const options = {

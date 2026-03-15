@@ -11,6 +11,9 @@
     ".": "./dist/index.js",
     "./watch": "./dist/watch.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
     "start": "npm run prepare:watch",

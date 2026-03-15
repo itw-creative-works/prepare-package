@@ -1,5 +1,5 @@
 const jetpack = require('fs-jetpack');
-const fetch = require('wonderful-fetch');
+const fetch = require('wonderful-fetch').default;
 const path = require('path');
 const { default: chalk } = require('chalk');
 const logger = require('./logger');

@@ -34,7 +34,7 @@ async function build(options) {
       build.onLoad({ filter: /\.js$/ }, async (args) => {
         let contents = fs.readFileSync(args.path, 'utf8');
         contents = contents.replace(/\{version\}/g, version);
-        return { contents, loader: 'js' };
+        return { contents, loader: 'js', watchFiles: [args.path] };
       });
     },
   };
@@ -124,13 +124,39 @@ async function createWatchContexts(options) {
   const entry = path.resolve(cwd, buildConfig.entry || path.join(config.input || './src', 'index.js'));
   const formats = buildConfig.formats || ['esm', 'cjs'];
 
-  const versionPlugin = {
-    name: 'version-replace',
+  // In watch mode, replace {version} in output files AFTER build (onEnd)
+  // instead of intercepting file loading (onLoad), so esbuild's native
+  // file watcher can detect source changes.
+  let isFirstBuild = true;
+  let rebuildTimer = null;
+
+  const watchVersionPlugin = {
+    name: 'version-replace-watch',
     setup(build) {
-      build.onLoad({ filter: /\.js$/ }, async (args) => {
-        let contents = fs.readFileSync(args.path, 'utf8');
-        contents = contents.replace(/\{version\}/g, version);
-        return { contents, loader: 'js' };
+      build.onEnd((result) => {
+        // Replace {version} in the output file
+        const outfile = build.initialOptions.outfile;
+        if (outfile && fs.existsSync(outfile)) {
+          const contents = fs.readFileSync(outfile, 'utf8');
+          if (contents.includes('{version}')) {
+            fs.writeFileSync(outfile, contents.replace(/\{version\}/g, version));
+          }
+        }
+
+        // Skip first build (the "Watching..." message covers it)
+        if (isFirstBuild) {
+          return;
+        }
+
+        // Debounce rebuild log across all format contexts
+        if (result.errors.length > 0) {
+          logger.error(chalk.red(`Build failed with ${result.errors.length} error(s)`));
+        } else if (!rebuildTimer) {
+          rebuildTimer = setTimeout(() => {
+            rebuildTimer = null;
+            logger.log(chalk.green(`Rebuilt ${packageJSON.name} v${version}`));
+          }, 50);
+        }
       });
     },
   };
@@ -139,7 +165,7 @@ async function createWatchContexts(options) {
     entryPoints: [entry],
     bundle: true,
     sourcemap: buildConfig.sourcemap || false,
-    plugins: [versionPlugin],
+    plugins: [watchVersionPlugin],
     external: buildConfig.external || [],
   };
 
@@ -195,6 +221,8 @@ async function createWatchContexts(options) {
   );
 
   await Promise.all(contexts.map(ctx => ctx.watch()));
+  // Delay flipping the flag so initial onEnd callbacks complete first
+  await new Promise(resolve => setTimeout(() => { isFirstBuild = false; resolve(); }, 100));
 
   const formatNames = formats.map(f => f.toUpperCase()).join(', ');
   logger.log(chalk.green(`Watching ${packageJSON.name} v${version} (${formatNames})...`));

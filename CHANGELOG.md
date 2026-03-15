@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [2.0.3] - 2026-03-14
+### Fixed
+- esbuild watch mode not detecting file changes due to onLoad plugin intercepting file loading
+- Added `watchFiles` to one-shot build's onLoad plugin for proper dependency tracking
+- Debounced rebuild logging across format contexts in watch mode
+
+---
 ## [2.0.0] - 2026-03-14
 ### Added
 - Bundle mode (`type: "bundle"`) using esbuild for ESM, CJS, and IIFE multi-format builds

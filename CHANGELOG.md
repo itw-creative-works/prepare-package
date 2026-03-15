@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [2.0.7] - 2026-03-15
+### Changed
+- Removed `.default` from `wonderful-fetch` require() since Node.js v22+ handles ESM default exports natively
+- Bumped `wonderful-fetch` dependency from ^2.0.1 to ^2.0.4
+- Added documentation for CJS default export footer configuration in README
+
+---
 ## [2.0.6] - 2026-03-15
 ### Added
 - Default CJS footer that unwraps `export default` so `require()` returns the function/class directly instead of `{ default: fn }`

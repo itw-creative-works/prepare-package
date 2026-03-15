@@ -109,6 +109,7 @@ Uses esbuild to produce optimized builds in multiple module formats.
 | `build.platform` | `"neutral"` | esbuild platform |
 | `build.external` | `[]` | Packages to exclude from bundle |
 | `build.sourcemap` | `false` | Generate source maps |
+| `build.cjs.footer` | `"module.exports=module.exports.default\|\|module.exports;"` | CJS footer — unwraps `export default` so `require()` returns the value directly |
 | `build.iife.globalName` | — | **Required** when `"iife"` is in formats. The global variable name (e.g., `window.MyLib`) |
 | `build.iife.fileName` | `"{name}.min.js"` | Output filename for IIFE build |
 | `build.iife.target` | `"es2015"` | esbuild target for IIFE build |
@@ -122,6 +123,19 @@ Uses esbuild to produce optimized builds in multiple module formats.
 
 #### Version replacement
 In bundle mode, all occurrences of `{version}` in `.js` source files are replaced with the version from `package.json` at build time via an esbuild plugin.
+
+#### CJS default export
+The CJS build automatically appends a footer that unwraps `export default` so `require('your-package')` returns the function/class directly — not `{ default: fn }`. This means both of these just work:
+
+```js
+// ESM
+import MyLib from 'your-package';
+
+// CJS
+const MyLib = require('your-package');
+```
+
+To override the footer, set `build.cjs.footer` in your config.
 
 #### IIFE global export
 The IIFE build automatically unwraps the default export so `window[globalName]` is the class/function directly, not a `{ default }` wrapper.

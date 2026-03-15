@@ -6,25 +6,47 @@ const logger = require('./logger');
 
 module.exports = async function watch() {
   const cwd = process.cwd();
-  
+
   // Get package.json info
   const packageJSONPath = path.resolve(cwd, 'package.json');
   const packageJSONExists = jetpack.exists(packageJSONPath);
   const packageJSON = packageJSONExists ? require(packageJSONPath) : {};
-  
+
   // Set up paths
   packageJSON.preparePackage = packageJSON.preparePackage || {};
+  const type = packageJSON.preparePackage.type || 'copy';
   const inputPath = path.resolve(cwd, packageJSON.preparePackage.input || './src');
   const outputPath = path.resolve(cwd, packageJSON.preparePackage.output || './dist');
-  
+
+  // --- BUNDLE MODE: use esbuild's built-in watch ---
+  if (type === 'bundle') {
+    const { createWatchContexts } = require('./build');
+
+    const contexts = await createWatchContexts({
+      cwd,
+      packageJSON,
+      config: packageJSON.preparePackage,
+    });
+
+    // Handle process termination
+    process.on('SIGINT', async () => {
+      logger.log('Stopping watchers...');
+      await Promise.all(contexts.map(ctx => ctx.dispose()));
+      process.exit(0);
+    });
+
+    return;
+  }
+
+  // --- COPY MODE: use chokidar ---
   // Run initial prepare (full copy)
   logger.log('Running initial prepare...');
   await prepare({ purge: false });
   logger.log('Initial prepare complete!');
-  
+
   // Set up watcher
   logger.log('Watching for changes...');
-  
+
   const watcher = chokidar.watch(inputPath, {
     persistent: true,
     ignoreInitial: true,
@@ -33,12 +55,12 @@ module.exports = async function watch() {
       pollInterval: 100
     }
   });
-  
+
   // Helper function to process a single file
   const processSingleFile = async (filePath, eventType) => {
     const relativePath = path.relative(inputPath, filePath);
     const destPath = path.join(outputPath, relativePath);
-    
+
     try {
       if (eventType === 'unlink' || eventType === 'unlinkDir') {
         // Remove the file/directory from output
@@ -52,16 +74,16 @@ module.exports = async function watch() {
         logger.log(`Created dir: ${relativePath}`);
       } else if (eventType === 'add' || eventType === 'change') {
         // Use the main prepare function with singleFile option
-        await prepare({ 
+        await prepare({
           purge: false,
-          singleFile: filePath 
+          singleFile: filePath
         });
       }
     } catch (error) {
       logger.error(`Error processing ${relativePath}: ${error.message}`);
     }
   };
-  
+
   // Set up event handlers
   watcher
     .on('add', path => processSingleFile(path, 'add'))
@@ -71,7 +93,7 @@ module.exports = async function watch() {
     .on('unlinkDir', path => processSingleFile(path, 'unlinkDir'))
     .on('error', error => logger.error(`Watcher error: ${error}`))
     .on('ready', () => logger.log('Ready for changes!'));
-  
+
   // Handle process termination
   process.on('SIGINT', () => {
     logger.log('Stopping watcher...');

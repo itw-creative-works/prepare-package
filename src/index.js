@@ -1,7 +1,7 @@
 const jetpack = require('fs-jetpack');
 const fetch = require('wonderful-fetch');
 const path = require('path');
-const chalk = require('chalk');
+const { default: chalk } = require('chalk');
 const logger = require('./logger');
 
 // const argv = require('yargs').argv;
@@ -110,96 +110,111 @@ module.exports = async function (options) {
   theirPackageJSON.preparePackage.input = theirPackageJSON.preparePackage.input || './src';
   theirPackageJSON.preparePackage.output = theirPackageJSON.preparePackage.output || './dist';
   theirPackageJSON.preparePackage.replace = theirPackageJSON.preparePackage.replace || {};
+  theirPackageJSON.preparePackage.type = theirPackageJSON.preparePackage.type || 'copy';
 
   // Add script
   theirPackageJSON.scripts = theirPackageJSON.scripts || {};
-  // theirPackageJSON.scripts.prepare = theirPackageJSON.scripts.prepare
-  //   || 'node -e \'require(`prepare-package`)()\'';
-  // theirPackageJSON.scripts['prepare:watch'] = theirPackageJSON.scripts['prepare:watch']
-  //   || `nodemon -w ./src -e '*' --exec 'npm run prepare'`
   theirPackageJSON.scripts.prepare = `node -e \"require('prepare-package')()\"`;
   theirPackageJSON.scripts['prepare:watch'] = `node -e \"require('prepare-package/watch')()\"`
 
-  // Log the options
-  // console.log(chalk.blue(`[prepare-package]: Options purge=${options.purge}`));
-  // console.log(chalk.blue(`[prepare-package]: input=${theirPackageJSON.preparePackage.input}`));
-  // console.log(chalk.blue(`[prepare-package]: output=${theirPackageJSON.preparePackage.output}`));
-  // console.log(chalk.blue(`[prepare-package]: main=${theirPackageJSON.main}`));
+  // Resolve type
+  const type = theirPackageJSON.preparePackage.type;
+  const isBundleMode = type === 'bundle';
+
+  // Skip bundle mode during postinstall — esbuild bundling only runs via prepare/build scripts
+  if (isBundleMode && options.isPostInstall) {
+    return;
+  }
+
   if (!options.singleFile) {
-    logger.log(`Starting...${isPublishing ? ' (via npm publish)' : ''}`);
+    logger.log(`Starting (${type} mode)...${isPublishing ? ' (via npm publish)' : ''}`);
     logger.log({
+      type: type,
       purge: options.purge,
       input: theirPackageJSON.preparePackage.input,
       output: theirPackageJSON.preparePackage.output,
       main: theirPackageJSON.main,
-
-      // lifecycle: process.env.npm_lifecycle_event,
-      // command: process.env.npm_command,
       isPublishing: isPublishing,
     });
   }
 
-  // Set the paths relative to the cwd
-  const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
-  const outputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.output);
-  const inputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.input);
+  // --- BUNDLE MODE ---
+  if (isBundleMode) {
+    const { build } = require('./build');
 
-  // Check if paths exist
-  const mainPathExists = jetpack.exists(mainPath);
-  const outputPathExists = jetpack.exists(outputPath);
-  const inputPathExists = jetpack.exists(inputPath);
+    await build({
+      cwd: options.cwd,
+      packageJSON: theirPackageJSON,
+      config: theirPackageJSON.preparePackage,
+    });
 
-  // Handle single file mode (for watch)
-  if (options.singleFile) {
-    const relativePath = path.relative(inputPath, options.singleFile);
-    const destPath = path.join(outputPath, relativePath);
-
-    // Copy single file
-    if (jetpack.exists(options.singleFile)) {
-      jetpack.copy(options.singleFile, destPath, { overwrite: true });
-      logger.log(`Updated: ${relativePath}`);
-    }
-  } else {
-    // Normal mode - full copy
-    // Remove the output folder if it exists (input must exist too)
-    if (outputPathExists && inputPathExists) {
-      jetpack.remove(outputPath);
-    }
-
-    // Copy the input folder to the output folder if it exists
-    if (inputPathExists) {
-      jetpack.copy(inputPath, outputPath);
+    // Write updated package.json (scripts, defaults)
+    if (isLivePreparation && theirPackageJSONExists) {
+      jetpack.write(
+        theirPackageJSONPath,
+        `${JSON.stringify(theirPackageJSON, null, 2)}\n`
+      );
     }
   }
 
-  // Only do this part on the actual package that is using THIS package because we dont't want to replace THIS {version}
-  if (isLivePreparation) {
-    // In single file mode, only process if it's the main file
+  // --- COPY MODE ---
+  else {
+    // Set the paths relative to the cwd
+    const mainPath = path.resolve(options.cwd, theirPackageJSON.main);
+    const outputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.output);
+    const inputPath = path.resolve(options.cwd, theirPackageJSON.preparePackage.input);
+
+    // Check if paths exist
+    const mainPathExists = jetpack.exists(mainPath);
+    const outputPathExists = jetpack.exists(outputPath);
+    const inputPathExists = jetpack.exists(inputPath);
+
+    // Handle single file mode (for watch)
     if (options.singleFile) {
-      const destPath = path.join(outputPath, path.relative(inputPath, options.singleFile));
-      if (destPath === mainPath && jetpack.exists(destPath)) {
-        jetpack.write(
-          destPath,
-          jetpack.read(destPath).replace(/{version}/igm, theirPackageJSON.version)
-        );
+      const relativePath = path.relative(inputPath, options.singleFile);
+      const destPath = path.join(outputPath, relativePath);
+
+      // Copy single file
+      if (jetpack.exists(options.singleFile)) {
+        jetpack.copy(options.singleFile, destPath, { overwrite: true });
+        logger.log(`Updated: ${relativePath}`);
       }
     } else {
-      // Normal mode - process main file and package.json
-      // Replace the main file
-      if (mainPathExists) {
-        jetpack.write(
-          mainPath,
-          jetpack.read(mainPath)
-            .replace(/{version}/igm, theirPackageJSON.version),
-        );
+      // Normal mode - full copy
+      if (outputPathExists && inputPathExists) {
+        jetpack.remove(outputPath);
       }
 
-      // Replace the package.json
-      if (theirPackageJSONExists) {
-        jetpack.write(
-          theirPackageJSONPath,
-          `${JSON.stringify(theirPackageJSON, null, 2)}\n`
-        );
+      if (inputPathExists) {
+        jetpack.copy(inputPath, outputPath);
+      }
+    }
+
+    // Only do this part on the actual package that is using THIS package
+    if (isLivePreparation) {
+      if (options.singleFile) {
+        const destPath = path.join(outputPath, path.relative(inputPath, options.singleFile));
+        if (destPath === mainPath && jetpack.exists(destPath)) {
+          jetpack.write(
+            destPath,
+            jetpack.read(destPath).replace(/{version}/igm, theirPackageJSON.version)
+          );
+        }
+      } else {
+        if (mainPathExists) {
+          jetpack.write(
+            mainPath,
+            jetpack.read(mainPath)
+              .replace(/{version}/igm, theirPackageJSON.version),
+          );
+        }
+
+        if (theirPackageJSONExists) {
+          jetpack.write(
+            theirPackageJSONPath,
+            `${JSON.stringify(theirPackageJSON, null, 2)}\n`
+          );
+        }
       }
     }
   }

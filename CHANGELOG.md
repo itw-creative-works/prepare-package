@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [2.0.6] - 2026-03-15
+### Added
+- Default CJS footer that unwraps `export default` so `require()` returns the function/class directly instead of `{ default: fn }`
+- Configurable via `preparePackage.build.cjs.footer` for custom override
+
+---
 ## [2.0.3] - 2026-03-14
 ### Fixed
 - esbuild watch mode not detecting file changes due to onLoad plugin intercepting file loading

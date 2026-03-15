@@ -66,6 +66,7 @@ async function build(options) {
 
   // CJS
   if (formats.includes('cjs')) {
+    const cjsConfig = buildConfig.cjs || {};
     builds.push({
       ...shared,
       outfile: path.join(outputPath, 'index.js'),
@@ -73,6 +74,8 @@ async function build(options) {
       platform,
       minify: false,
       target,
+      // Unwrap default export so require() returns the function/class directly
+      footer: { js: cjsConfig.footer || 'module.exports=module.exports.default||module.exports;' },
     });
   }
 
@@ -185,6 +188,7 @@ async function createWatchContexts(options) {
   }
 
   if (formats.includes('cjs')) {
+    const cjsConfig = buildConfig.cjs || {};
     builds.push({
       ...shared,
       outfile: path.join(outputPath, 'index.js'),
@@ -192,6 +196,8 @@ async function createWatchContexts(options) {
       platform,
       minify: false,
       target,
+      // Unwrap default export so require() returns the function/class directly
+      footer: { js: cjsConfig.footer || 'module.exports=module.exports.default||module.exports;' },
     });
   }
 

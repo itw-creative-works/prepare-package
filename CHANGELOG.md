@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [2.0.8] - 2026-04-07
+### Changed
+- Bumped `esbuild` dependency from ^0.27.4 to ^0.28.0
+- Bumped `wonderful-fetch` dependency from ^2.0.4 to ^2.0.5
+
+---
 ## [2.0.7] - 2026-03-15
 ### Changed
 - Removed `.default` from `wonderful-fetch` require() since Node.js v22+ handles ESM default exports natively

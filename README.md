@@ -46,6 +46,7 @@ npx prepare-package
 * Two modes: **copy** (default) and **bundle** (esbuild)
 * Copy mode: copies `src/` to `dist/`, replaces `{version}` in main file
 * Bundle mode: builds ESM, CJS, and/or IIFE outputs via esbuild
+* **Before/after hooks** — run arbitrary shell commands as part of the prepare lifecycle
 * Blocks `npm publish` when local `file:` dependencies are detected
 * Cleans up sensitive files (`.env`, `.DS_Store`, etc.) before publish
 * Purges jsDelivr CDN cache after publish
@@ -139,6 +140,45 @@ To override the footer, set `build.cjs.footer` in your config.
 
 #### IIFE global export
 The IIFE build automatically unwraps the default export so `window[globalName]` is the class/function directly, not a `{ default }` wrapper.
+
+### Hooks
+
+Run arbitrary shell commands before or after the copy/bundle step. Useful for fetching remote data, generating files, uploading artifacts, or running any command that needs to happen as part of the prepare lifecycle — so the output lands in both your git commits and your published tarball.
+
+```json
+{
+  "preparePackage": {
+    "input": "src",
+    "output": "dist",
+    "hooks": {
+      "before": "node scripts/update-disposable-domains.js",
+      "after": "node scripts/notify-deploy.js"
+    }
+  }
+}
+```
+
+| Hook | When it runs | On failure |
+|------|-------------|-----------|
+| `before` | After publish safety checks, before the copy/bundle step | **Blocks** — throws and aborts prepare |
+| `after` | After the copy/bundle step, before the CDN purge | **Warns** — logs a warning and continues |
+
+Both hooks accept a single command string or an array of commands:
+
+```json
+{
+  "preparePackage": {
+    "hooks": {
+      "before": [
+        "node scripts/update-disposable-domains.js",
+        "node scripts/build-manifest.js"
+      ]
+    }
+  }
+}
+```
+
+Commands run synchronously from the package root with `stdio` inherited, so their output appears in the parent process. Hooks are **skipped** in watch mode (single-file updates) and during postinstall — they only run on full prepare runs (`npm run prepare`, `npm publish`, etc.).
 
 ## Usage
 

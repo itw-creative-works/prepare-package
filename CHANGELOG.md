@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [2.1.0] - 2026-04-10
+### Added
+- `hooks.before` and `hooks.after` config — run arbitrary shell commands before or after the copy/bundle step. Commands can be a single string or an array of strings. `before` hook failures block the prepare flow; `after` hook failures warn and continue. Hooks are skipped in watch mode and during postinstall.
+
+---
 ## [2.0.8] - 2026-04-07
 ### Changed
 - Bumped `esbuild` dependency from ^0.27.4 to ^0.28.0

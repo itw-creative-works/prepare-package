@@ -1,8 +1,65 @@
 const jetpack = require('fs-jetpack');
 const fetch = require('wonderful-fetch');
 const path = require('path');
+const { spawn } = require('child_process');
 const { default: chalk } = require('chalk');
 const logger = require('./logger');
+
+/**
+ * Run a single shell command and resolve/reject when it exits.
+ * Streams stdio to the parent process so output is visible during prepare/publish.
+ *
+ * @param {string} cmd - Shell command to run
+ * @param {string} cwd - Working directory for the command
+ * @returns {Promise<void>} - Resolves on exit code 0, rejects otherwise
+ */
+function runCommand(cmd, cwd) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, {
+      cwd: cwd,
+      stdio: 'inherit',
+      shell: true,
+    });
+
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) {
+        return resolve();
+      }
+      return reject(new Error(`Command exited with code ${code}`));
+    });
+  });
+}
+
+/**
+ * Run a hook command (or array of commands) sequentially from the consumer's cwd.
+ *
+ * @param {string|string[]} command - Shell command(s) to run
+ * @param {string} cwd - Working directory for the command
+ * @param {string} label - 'before' or 'after' (used in logs)
+ * @param {boolean} blocking - If true, throws on failure; if false, warns and continues
+ */
+async function runHook(command, cwd, label, blocking) {
+  if (!command) {
+    return;
+  }
+
+  const commands = Array.isArray(command) ? command : [command];
+
+  for (const cmd of commands) {
+    logger.log(chalk.cyan(`Running ${label} hook: ${cmd}`));
+
+    try {
+      await runCommand(cmd, cwd);
+    } catch (e) {
+      if (blocking) {
+        logger.error(`${label} hook failed: ${cmd}`);
+        throw e;
+      }
+      logger.error(chalk.yellow(`${label} hook failed (non-blocking): ${cmd} — ${e.message}`));
+    }
+  }
+}
 
 // const argv = require('yargs').argv;
 
@@ -111,6 +168,7 @@ module.exports = async function (options) {
   theirPackageJSON.preparePackage.output = theirPackageJSON.preparePackage.output || './dist';
   theirPackageJSON.preparePackage.replace = theirPackageJSON.preparePackage.replace || {};
   theirPackageJSON.preparePackage.type = theirPackageJSON.preparePackage.type || 'copy';
+  theirPackageJSON.preparePackage.hooks = theirPackageJSON.preparePackage.hooks || {};
 
   // Add script
   theirPackageJSON.scripts = theirPackageJSON.scripts || {};
@@ -136,6 +194,13 @@ module.exports = async function (options) {
       main: theirPackageJSON.main,
       isPublishing: isPublishing,
     });
+  }
+
+  // Run the `before` hook
+  // Only runs on live preparation (not on prepare-package's own build) and never in postinstall
+  // or single-file watch mode (which runs on every file change).
+  if (isLivePreparation && !options.isPostInstall && !options.singleFile) {
+    await runHook(theirPackageJSON.preparePackage.hooks.before, options.cwd, 'before', true);
   }
 
   // --- BUNDLE MODE ---
@@ -223,6 +288,12 @@ module.exports = async function (options) {
   if (options.isPostInstall) {
     // Send analytics
     // ... moveed to another package
+  }
+
+  // Run the `after` hook
+  // Non-blocking — failures warn but don't break the prepare flow (same philosophy as CDN purge).
+  if (isLivePreparation && !options.isPostInstall && !options.singleFile) {
+    await runHook(theirPackageJSON.preparePackage.hooks.after, options.cwd, 'after', false);
   }
 
   // If purge is disabled, then return
